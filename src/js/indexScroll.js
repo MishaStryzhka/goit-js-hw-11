@@ -13,10 +13,11 @@ const lightbox = new SimpleLightbox('.gallery a', {
 const refs = {
     form: document.querySelector('.search-form'),
     gallery: document.querySelector('.gallery'),
-    btnLoadMore: document.querySelector('.load-more'),
+    // btnLoadMore: document.querySelector('.load-more')
 }
 let page = 1;
 let inputValue = "";
+let valueScroll = 0;
 
 refs.form.addEventListener('submit', (e) => {
     e.preventDefault()
@@ -24,66 +25,67 @@ refs.form.addEventListener('submit', (e) => {
 
     refs.gallery.innerHTML = "";
     page = 1;
+    valueScroll = 0;
 
     getFoto(inputValue, String(page))
         .then(data => {
             try {
                 Notify.success(`Hooray! We found ${data.totalHits} images.`)
-
-                refs.gallery.insertAdjacentHTML("beforeend", creatGalery(data.hits));
-
-                refs.btnLoadMore.classList.remove("ishiden");
-
-                isLastPage(data.totalHits);
-
-                lightbox.refresh();
-
-                const { height: cardHeight } = document
-                    .querySelector(".gallery")
-                    .firstElementChild.getBoundingClientRect();
-
-                window.scrollBy({
-                    top: cardHeight / 3.5,
-                    behavior: "smooth",
-                });
-
-                nextPage()
-
-                return data.totalHits;
             } catch (error) {
                 console.log(error);
             };
-        })
-        .catch(err => {
-            Notify.warning("Sorry, there are no images matching your search query. Please try again.");
-            refs.gallery.innerHTML = "";
-        })
-})
-
-refs.btnLoadMore.addEventListener('click', () => {
-    getFoto(inputValue, String(page))
-        .then(data => {
-
             refs.gallery.insertAdjacentHTML("beforeend", creatGalery(data.hits));
 
+            // refs.btnLoadMore.classList.remove("ishiden");
+
             isLastPage(data.totalHits);
+
+            lightbox.refresh();
 
             const { height: cardHeight } = document
                 .querySelector(".gallery")
                 .firstElementChild.getBoundingClientRect();
 
             window.scrollBy({
-                top: cardHeight * 2.1,
+                top: cardHeight / 3.5,
                 behavior: "smooth",
             });
 
-            nextPage();
+            nextPage()
 
-            lightbox.refresh();
-            return markup;
+            return data;
+        })
+        .catch(err => {
+            console.log(err);
+            Notify.warning("Sorry, there are no images matching your search query. Please try again.");
+            refs.gallery.innerHTML = "";
         })
 })
 
+// refs.btnLoadMore.addEventListener('click', () => {
+//     getFoto(inputValue, String(page))
+//         .then(data => {
+
+//             refs.gallery.insertAdjacentHTML("beforeend", creatGalery(data.hits));
+
+//             isLastPage(data.totalHits);
+
+//             const { height: cardHeight } = document
+//                 .querySelector(".gallery")
+//                 .firstElementChild.getBoundingClientRect();
+
+//             window.scrollBy({
+//                 top: cardHeight * 2.1,
+//                 behavior: "smooth",
+//             });
+
+//             nextPage();
+
+//             valueScroll = 0;
+
+//             lightbox.refresh();
+//         })
+// })
 
 function creatGalery(eve) {
     let markup = "";
@@ -127,4 +129,36 @@ function creatEL(data) {
                     <b>${downloads}</b>
                 </p>
             </div></a>`
+}
+
+// ======== для скролу
+
+window.addEventListener('scroll', onscroll)
+
+
+function onscroll() {
+    const maxHeightToScroll = refs.gallery.scrollHeight - window.outerHeight * 2;
+
+
+
+    if (window.pageYOffset < refs.gallery.scrollHeight && window.pageYOffset > maxHeightToScroll && valueScroll === 0) {
+        console.log("tak");
+
+        getFoto(inputValue, String(page))
+            .then(data => {
+
+                refs.gallery.insertAdjacentHTML("beforeend", creatGalery(data.hits));
+
+                lightbox.refresh();
+
+                nextPage();
+
+                valueScroll = 0;
+
+                isLastPage(data.totalHits);
+            })
+
+        valueScroll += 1;
+    }
+
 }
