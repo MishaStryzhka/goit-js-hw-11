@@ -12,10 +12,18 @@
 
 <body>
 
-  <form class="search-form" id="search-form">
+  <div class="search-wrapper">
+    <form class="input-holder">
+      <input class="search-input" type="text" name="searchQuery" autocomplete="off" placeholder="Search images..." />
+      <button class="search-icon"><span></span></button>
+    </form>
+    <button class="close"></button>
+  </div>
+
+  <!-- <form class="search-form" id="search-form">
     <input class="search-form_input" type="text" name="searchQuery" autocomplete="off" placeholder="Search images..." />
     <button class="search-form_btn" type="submit"><i class="gg-search"></i></button>
-  </form>
+  </form> -->
 
   <div class="gallery">
   </div>

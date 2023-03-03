@@ -11,56 +11,69 @@ const lightbox = new SimpleLightbox('.gallery a', {
 });
 
 const refs = {
-    form: document.querySelector('.search-form'),
+    form: document.querySelector('.input-holder'),
     gallery: document.querySelector('.gallery'),
     // btnLoadMore: document.querySelector('.load-more')
+    searchForm: document.querySelector('.search-wrapper'),
+    closeBtn: document.querySelector('.close'),
 }
+
+
 let page = 1;
 let inputValue = "";
 let valueScroll = 0;
-
-refs.form.addEventListener('submit', (e) => {
-    e.preventDefault()
-    inputValue = e.currentTarget.searchQuery.value;
-
-    refs.gallery.innerHTML = "";
-    page = 1;
-    valueScroll = 0;
-
-    getFoto(inputValue, String(page))
-        .then(data => {
-            try {
-                Notify.success(`Hooray! We found ${data.totalHits} images.`)
-            } catch (error) {
-                console.log(error);
-            };
-            refs.gallery.insertAdjacentHTML("beforeend", creatGalery(data.hits));
-
-            // refs.btnLoadMore.classList.remove("ishiden");
-
-            isLastPage(data.totalHits);
-
-            lightbox.refresh();
-
-            const { height: cardHeight } = document
-                .querySelector(".gallery")
-                .firstElementChild.getBoundingClientRect();
-
-            window.scrollBy({
-                top: cardHeight / 3.5,
-                behavior: "smooth",
-            });
-
-            nextPage()
-
-            return data;
-        })
-        .catch(err => {
-            console.log(err);
-            Notify.warning("Sorry, there are no images matching your search query. Please try again.");
-            refs.gallery.innerHTML = "";
-        })
+refs.searchForm.addEventListener('click', (e) => {
+    searchToggle(e.currentTarget, e)
 })
+
+function submit() {
+    refs.form.addEventListener('submit', (e) => {
+        e.preventDefault()
+        inputValue = e.currentTarget.searchQuery.value;
+
+        refs.gallery.innerHTML = "";
+        page = 1;
+        valueScroll = 0;
+
+        closeForm(refs.searchForm)
+
+        setTimeout(() => {
+            getFoto(inputValue, String(page))
+                .then(data => {
+                    try {
+                        Notify.success(`Hooray! We found ${data.totalHits} images.`)
+                    } catch (error) {
+                        console.log(error);
+                    };
+                    refs.gallery.insertAdjacentHTML("beforeend", creatGalery(data.hits));
+
+                    // refs.btnLoadMore.classList.remove("ishiden");
+
+                    isLastPage(data.totalHits);
+
+                    lightbox.refresh();
+
+                    // const { height: cardHeight } = document
+                    //     .querySelector(".gallery")
+                    //     .firstElementChild.getBoundingClientRect();
+
+                    // window.scrollBy({
+                    //     top: cardHeight / 3.5,
+                    //     behavior: "smooth",
+                    // });
+
+                    nextPage()
+
+                    return data;
+                })
+                .catch(err => {
+                    console.log(err);
+                    Notify.warning("Sorry, there are no images matching your search query. Please try again.");
+                    refs.gallery.innerHTML = "";
+                })
+        }, 200)
+    }, { once: true })
+}
 
 // refs.btnLoadMore.addEventListener('click', () => {
 //     getFoto(inputValue, String(page))
@@ -87,6 +100,29 @@ refs.form.addEventListener('submit', (e) => {
 //         })
 // })
 
+// ======== для form
+
+
+function searchToggle(obj, evt) {
+    if (!obj.classList.contains('active')) {
+        obj.classList.add('active');
+        obj.classList.remove('close')
+        setTimeout(() => { submit() }, 1000)
+        evt.preventDefault();
+
+    }
+    else if (obj.classList.contains('active') && evt.target.classList.contains('close')) {
+        closeForm(obj)
+    }
+}
+
+function closeForm(obj) {
+    obj.classList.remove('active');
+    obj.classList.add('close')
+    // clear input
+    obj.firstElementChild.firstElementChild.value = "";
+}
+
 function creatGalery(eve) {
     let markup = "";
     eve.forEach(data => {
@@ -97,7 +133,7 @@ function creatGalery(eve) {
 }
 function isLastPage(e) {
     if (e < 39 * page) {
-        refs.btnLoadMore.classList.toggle("ishiden");
+        // refs.btnLoadMore.classList.toggle("ishiden");
         Notify.warning("We're sorry, but you've reached the end of search results.");
     };
 }
